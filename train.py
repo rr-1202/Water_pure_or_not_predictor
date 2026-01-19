@@ -13,15 +13,10 @@ from sklearn.model_selection import cross_val_score, GridSearchCV
 import pickle
 import gradio as gr
 
-"""### ***Task 1: Data Loading***"""
-
 df = pd.read_csv("exam_csv.csv")
 df.head()
 
 print(df.shape)
-
-"""### ***Task 2: Data Preprocessing***"""
-
 df.isna().sum()
 
 X = df.drop(columns=["Potability"])
@@ -41,8 +36,6 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-"""WE CAN SEE THAT THERE ARE MISSING VALS IN THE COLUMNS "ph", "Sulfate" and "Trihalomethanes". SO I REPLACED THE MISSING VALS AS THE COLUMNS MEDIAN WITH SimpleImputer."""
-
 for i in num_cols:
     q1 = X[i].quantile(0.25)
     q3 = X[i].quantile(0.75)
@@ -50,8 +43,6 @@ for i in num_cols:
     lower = q1-1.5*iqr
     upper = q3+1.5*iqr
     print(i,((X[i] < lower) | (X[i] > upper)).sum())
-
-"""TO GET THE OUTLIERS, I USED THE IQR METHOD and COMPARED THE VALS WITH EVERY VALS OF THE DF. FROM THAT WE CAN GET THE OUTLIERS."""
 
 for i in num_cols:
     q1 = X[i].quantile(0.25)
@@ -61,8 +52,6 @@ for i in num_cols:
     upper = q3+1.5*iqr
     print(i,((X[i] < lower) | (X[i] > upper)).sum())
     X[i] = X[i].clip(lower,upper)
-
-"""WE CAN SEE THAT OUTLIERS DO EXIST IN SOME COLUMNS OF THE DF. SO I CLIPPED THEM."""
 
 df["ph_bin"] = pd.cut(
     df["ph"],
@@ -80,11 +69,6 @@ df["Turbidity_bin"] = pd.cut(
     labels=["Very Low", "Low", "Medium", "High"]
 )
 df.head()
-
-"""I BINNED THE "pH", "hardness" AND "turbidity". INSTEAD OF RAW NUMBERS, "pH", "hardness" AND "turbidity" ARE TURNED INTO LEVELS LIKE ACIDIC/HARD WATER.
-
-### ***Task 3: Pipeline Creation, Task 4: Primary Model Selection, Task 5: Model Training***
-"""
 
 clf_rf = RandomForestClassifier(n_estimators=300, random_state=42)
 clf_gb = GradientBoostingClassifier(n_estimators=200, random_state=42)
@@ -124,17 +108,11 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 print("Accuracy: ", accuracy_score(y_test,y_pred))
 
-"""JUSTIFICATION: I choose Random forest classifier as the algorithm since from the accuracy score from 4 algorithms we can see that Random forest classifier performed the best and got the highest accuracy score out of them.
-
-### ***Task 6: Cross-Validation***
-"""
 
 cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring="accuracy")
 print("CV Accuracy scores:", cv_scores)
 print("Mean CV Accuracy:", cv_scores.mean())
 print("Std CV Accuracy:", cv_scores.std())
-
-"""### ***Task 7: Hyperparameter Tuning***"""
 
 param_grid = {
     "n_estimators": [100,150,175,200],
@@ -203,12 +181,6 @@ grid_search = GridSearchCV(
 grid_search.fit(X_train_clean, y_train_clean)
 print("Best Parameters:", grid_search.best_params_)
 print("Best CV Accuracy:", grid_search.best_score_)
-
-"""### ***Task 8: Best Model Selection***
-From the code from the previous cells we can see that Gradient boosting performed the best amongs them with the score of "BEST CV ACCURACY" 0.68. So, I will choose Gradient Boosting as the best model.
-
-### ***Task 9: Model Performance Evaluation***
-"""
 
 model = Pipeline([
         ("preprocessor", preprocessor),
